@@ -487,6 +487,7 @@ const diagramElement = document.querySelector("#diagram");
 const shapeLookup = {};
 const portLookup = {};
 const connectorLookup = {};
+let actConnection = undefined;
 
 const ports = [];
 const shapes = [];

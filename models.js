@@ -8,16 +8,52 @@ class FunctionBlockModel {
     this.name = fbt.name;
 	this.type = fbt.type;
     //this.ports = ports;
-    this.inputPorts = fbt.inputs;
-    this.outputPorts = fbt.outputs;
+    this.inputs = [];
+	this.outputs = [];
+	this.copyInputs(fbt.inputs);
+	this.copyOutputs(fbt.outputs);
 	this.x = 50;								// default translattion x
 	this.y = 50;								// default translattion y
   }
   
-  // add a connection to the defined port
-  connect(port, connector) {
-	  
+  copyInputs(inputs) {
+	  for (var i = 0; i < inputs.length; i++) {
+		this.inputs.push({"": inputs[i].type});
+	  }
   }
+  
+  copyOutputs(outputs) {
+	  for (var i = 0; i < outputs.length; i++) {
+		this.outputs.push({"": outputs[i].type});
+	  }
+  }
+}
+
+class IO {
+	constructor() {
+		this.name = "";
+		this.type = "";
+		this.centerX = 0;
+		this.centerY = 0;
+		this.portConnector = undefined;			// PortConnectorModel
+		this.connectionController = undefined;
+		this.translateX = 0;
+		this.translateY = 0;
+	}
+}
+
+class PortConnectorModel {
+	constructor() {
+		this.connection = undefined;				// ConnectionController
+		this.io = undefined;						// IO
+	}
+}
+
+class ConnectionModel {
+	constructor() {
+		this.startPort = undefined;					// PortConnectorModel
+		this.endPort = undefined;					// PortConnectorModel
+	}
 }
 
 class FunctionModel {
@@ -91,7 +127,7 @@ class RoomModel {
 var fbt = {
 	"name": "Licht",
 	"type": "Lichtsteuerung X5", 
-	"inputs" : [
+	"inputs" : [						// IO
 	  {
 		  "name": "eingang1",
 		  "type" : "bool"

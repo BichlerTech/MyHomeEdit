@@ -13,22 +13,58 @@ const Drag = (() => {
 			newY = y - offsetY + elem.model.y;
 			newX = Math.round(newX / 5) * 5;
 			newY = Math.round(newY / 5) * 5;
-			console.log()
-			element.setAttribute('transform', 'translate(' + newX + ',' + newY + ")");
+			elem.translate(newX, newY);
+		}
+	};
+	
+	function updateConnectionPosition(io, x, offsetX, y, offsetY) {
+		const menuWidth = document.querySelector('.w3-bar-block').getBoundingClientRect().width;
+		if (io !== null) {
+			newX = x - offsetX;
+			newY = y;
+			io.translateX = newX;
+			io.translateY = newY;
 		}
 	};
 
 	function getOffset(measurement, offset, clientPosition) {
 		return measurement - (measurement + offset - clientPosition);
 	};
-
+	
+	function mouseUpConnection(e) {
+		// test if it is on io element
+		actConnection.finishConnect(e);
+		document.removeEventListener('mousemove', moveConnection);
+		document.removeEventListener('mouseup', mouseUpConnection);
+	}
+	
+	function moveConnection(e) {
+		updateConnectionPosition(actConnection.cm.endPort.io, e.clientX, offsetX, e.clientY, offsetY)
+		actConnection.updatePath();
+	}
+	
+	function mouseUpMove(e) {
+		//console.log(e.target.parentElement.parentElement);
+		if(nodeContainer != null) {
+			var elem = actRoomController.roomm.Elements[nodeContainer.id];
+			if(elem != undefined) {
+			// controller.updateX()
+				elem.update(newX, newY);
+			}
+		} else {
+						// 
+		}
+		nodeContainer = null;
+		document.removeEventListener('mousemove', move);
+		document.removeEventListener('mouseup', mouseUpMove);
+	}
+	
 	function move(e) {
-		console.log(offsetX);
-		console.log(e.clientX);
 		updatePosition(nodeContainer, e.clientX, offsetX, e.clientY, offsetY)
 	}
 	return {
 		dragNode(e) {
+
 			nodeContainer = e.target.parentElement;
 			if (!nodeContainer.classList.contains('node-container')) {
 				nodeContainer = nodeContainer.parentElement;
@@ -41,13 +77,7 @@ const Drag = (() => {
  
 				document.addEventListener('mousemove', move);
 
-				document.addEventListener('mouseup', function () {
-					var elem = actRoomController.roomm.Elements[nodeContainer.id];
-					elem.model.x = newX;
-					elem.model.y = newY;
-					nodeContainer = null;
-					document.removeEventListener('mousemove', move);
-				});
+				document.addEventListener('mouseup', mouseUpMove);
 
 				var button = e.which || e.button;
 				var del = false;
@@ -99,12 +129,23 @@ const Drag = (() => {
 					}
 				}
 			} else if (nodeContainer.classList.contains('output-field')) {
-				// create connector
+				
+				var io = actRoomController.findPort(nodeContainer.id);			// IO
+				offsetX = e.clientX - io.translateX;
+				offsetY = e.clientY;
 				new ConnectionController();
-				console.log(nodeContainer);
+				actConnection.addConnection(io);
+				actConnection.draw();
+				document.addEventListener('mousemove', moveConnection);
+				document.addEventListener('mouseup', mouseUpConnection);
 			} else if (nodeContainer.classList.contains('input-field')) {
-				// create connector
-				console.log(nodeContainer);
+				var port = actRoomController.findPort(nodeContainer.id);
+				//document.addEventListener('mousemove', moveConnection);
+				//document.addEventListener('mouseup', function (e) {
+			//		document.removeEventListener('mousemove', moveConnection);
+				//});
+			} else {
+				nodeContainer = null;
 			}
 		}
 	}

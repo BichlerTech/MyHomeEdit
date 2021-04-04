@@ -115,9 +115,11 @@ class CPUView {
 
   drawInput(inp, index) {
 	var inputPort = this.model.inputPorts[index - 1];
+	inputPort.id = this.model.id + '-input-field-' + index;
     var input = document.createElementNS("http://www.w3.org/2000/svg", "g");
     input.setAttribute('class', 'input-field');
     input.setAttribute('transform', 'translate(0, ' + (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + ')');
+	input.id = inputPort.id;
     inp.appendChild(input);
     var innerinput = document.createElementNS("http://www.w3.org/2000/svg", "g");
     innerinput.setAttribute('class', 'port');
@@ -125,7 +127,7 @@ class CPUView {
     input.appendChild(innerinput);
 	
     var iport = document.createElementNS("http://www.w3.org/2000/svg", 'polygon');
-    iport.setAttribute('class', 'port-scrim_input');
+    iport.setAttribute('class', 'port-scrim-input');
     iport.setAttribute('points', fbInputWidth + ',0 ' + fbInputWidth + ',16 0,16 5,8 0,0');
     iport.setAttribute('data-clickable', 'false');
     iport.setAttribute('data-drag', 'port_5:port');
@@ -155,7 +157,7 @@ class CPUView {
     input.appendChild(innerinput);
 
     var oport = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    oport.setAttribute('class', 'port-scrim');
+    oport.setAttribute('class', 'port-scrim-output');
     oport.setAttribute('points', (fbWidth - fbOutputWidth)+',0 ' + (fbWidth - 5) + ',0 ' + fbWidth + ',8 ' + (fbWidth - 5) + ',16 '+(fbWidth - fbOutputWidth)+',16')
     oport.setAttribute('data-clickable', 'false');
     oport.setAttribute('data-drag', 'port_5:port');

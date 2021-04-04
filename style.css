@@ -66,7 +66,7 @@ body {
   stroke: green;
 }
 
-.node-header, .port-scrim {
+.node-header, .port-scrim-output {
   fill: rgb(32, 147, 49);
 
 }
@@ -76,14 +76,14 @@ body {
 
 }
 
-.node-header:hover, .port-scrim:hover{
+.node-header:hover, .port-scrim-output:hover{
   fill: rgb(12, 227, 44);
 }
 
-.port-scrim_input{
+.port-scrim-input{
   fill:rgb(135, 2, 2);
 }
-.port-scrim_input:hover{
+.port-scrim-input:hover{
   fill:rgb(240, 0, 0);
 }
 
@@ -137,13 +137,7 @@ body {
 }
 
 .connector-path {
-  stroke: #1279be;
-  stroke-width: 4;
-  fill: none;
-}
-
-.connector-path-outline {
-  stroke: #333;
-  stroke-width: 6;
-  fill: none;
+    stroke: rgb(32, 147, 49);
+    stroke-width: 2;
+    fill: none;
 }

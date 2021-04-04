@@ -17,8 +17,55 @@ class FunctionBlockController {
 	  this.view.updateCaption();
   }
   
+  findPort(elemid) {
+		if(elemid.indexOf('input') > 0) {
+			for (var i = 0; i < this.model.inputs.length; i++) {
+				if(this.model.inputs[i].id == elemid)
+					return this.model.inputs[i];
+			}
+		} else if(elemid.indexOf('output') > 0) {
+			for (var i = 0; i < this.model.outputs.length; i++) {
+				if(this.model.outputs[i].id == elemid)
+					return this.model.outputs[i];
+			}
+		}  
+  }
+  
   delete() {
 	  this.view.delete();
+  }
+  
+  translate(x, y) {
+	  this.view.translate(x,y);
+	  // update children
+  }
+  
+  update(x, y) {
+	  var deltax = x - this.model.x;
+	  var deltay = y - this.model.y;
+	  for (var i = 0; i < this.model.outputs.length; i++) {
+		  this.model.outputs[i].translateX += deltax;
+		  this.model.outputs[i].translateY += deltay;
+		  var controller = this.model.outputs[i].connectionController;//new ConnectionController();
+		  //controller.cm = this.model.outputs[i].portConnector;
+		  // this.model.outputs[i].connectionController;
+		  if(controller != undefined) {
+			controller.updatePath();
+		  }
+	  }
+	  for (var i = 0; i < this.model.inputs.length; i++) {
+		  this.model.inputs[i].translateX += deltax;
+		  this.model.inputs[i].translateY += deltay;
+		  var controller = this.model.inputs[i].connectionController;//new ConnectionController();
+		  //controller.cm = this.model.outputs[i].portConnector;
+		  // this.model.outputs[i].connectionController;
+		  if(controller != undefined) {
+			controller.updatePath();
+		  }
+	  }
+	  this.model.x = x;
+	  this.model.y = y;
+	  
   }
 }
 
@@ -94,31 +141,81 @@ class OutputController {
 
 class ConnectionController {
 	constructor() {
+		this.cm = undefined;				// ConnectionModel
+		actConnection = this;
 	}
 	
-	createConnector() {
-
-		let connector;
-
-	//	if (connectorPool.length) {
-	//	  connector = connectorPool.pop();
-	//	  connectorLookup[connector.id] = connector;
-	//	} else {
-		  connector = new Connector();
-	//	}
-
-		connector.init(this);
-	//	this.lastConnector = connector;
-	//	this.connectors.push(connector);
+	addConnection(io) {
+		var pcm = new PortConnectorModel();
+		io.portConnector = pcm;
+		io.connectionController = this;
+				
+		this.cm = new ConnectionModel();
+		pcm.connection = this.cm;
+		pcm.io = io;
+				
+		this.cm.startPort = pcm;
+		this.cm.endPort = new PortConnectorModel();
+	//	this.cm.endPort.connection = this.cm;
+		this.cm.endPort.io = new IO();					// dummy io
+		this.cm.endPort.io.translateX = io.centerX;
+		this.cm.endPort.io.translateY = io.centerY;
+	}
+	
+	removeConnection() {
+		this.circle.parentElement.removeChild(this.circle);
+		this.path.parentElement.removeChild(this.path);
+	}
+	
+	draw() {
+		this.connector = document.createElementNS("http://www.w3.org/2000/svg", "g");
+		this.circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		this.circle.setAttribute("r", 4);
+		this.circle.setAttribute("cx", this.cm.startPort.io.centerX);
+		this.circle.setAttribute("cy", this.cm.startPort.io.centerY);
+		var portElem = document.getElementById(this.cm.startPort.io.id);
+		portElem.childNodes[0].appendChild(this.circle);
+		
+		this.path = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+		var room = document.getElementById("Wohnzimmer_Licht_node-layer");
+		room.appendChild(this.path);
+		this.path.classList.add('connector-path');
+	}
+	
+	finishConnect(e) {
+		// find io element
+		var input = document.elementFromPoint( e.clientX, e.clientY ).parentElement.parentElement;
+	//	console.log(input);
+		if(input.id.indexOf('-input-field-') >= 0) {
+			// try to find input port;
+			let io = actRoomController.findPort(input.id);
+			this.cm.endPort.io = io;
+			this.circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+			this.circle.setAttribute("r", 4);
+			this.circle.setAttribute("cx", io.centerX);
+			this.circle.setAttribute("cy", io.centerY);
+			
+			var portElem = document.getElementById(input.id);
+			portElem.childNodes[0].appendChild(this.circle);
+			this.cm.endPort.io.connectionController = this;
+			this.cm.endPort.io.translateX = io.translateX;
+			this.cm.endPort.io.translateY = io.translateY;
+			this.updatePath();
+		} else {
+			this.removeConnection();
+		}
 	}
 	
 	updatePath() {
 
-    const x1 = this.inputHandle._gsTransform.x;
-    const y1 = this.inputHandle._gsTransform.y;
+	if(this.cm.startPort == undefined || this.cm.endPort == undefined)
+		return;
+	
+    const x1 = this.cm.startPort.io.translateX;
+    const y1 = this.cm.startPort.io.translateY;
 
-    const x4 = this.inoutputHandle._gsTransform.x;
-    const y4 = this.inoutputHandle._gsTransform.y;
+    const x4 = this.cm.endPort.io.translateX;
+    const y4 = this.cm.endPort.io.translateY;
 
 	var p0x = 0;
 	var p0y = 0;
@@ -170,7 +267,7 @@ class ConnectionController {
  //   this.path.setAttribute("d", data);
  //   this.pathOutline.setAttribute("d", data);
 	this.path.setAttribute("points", data);
-    this.pathOutline.setAttribute("points", data);
+   // this.pathOutline.setAttribute("points", data);
   }
 }
 
@@ -224,6 +321,18 @@ class RoomController {
 		var outp = new OutputController();
 		this.roomm.Elements[outp.model.id] = outp;
 		outp.drawOutput();
+	}
+	
+	findPort(elemid) {
+		var portid = elemid;
+		if(elemid.indexOf('output') > 0) {
+			elemid = elemid.substring(0, elemid.indexOf('-output-field'));
+		}
+		else if(elemid.indexOf('input') > 0) {
+			elemid = elemid.substring(0, elemid.indexOf('-input-field'));
+		}
+		var elem = this.roomm.Elements[elemid];
+		return elem.findPort(portid);
 	}
 }
 

@@ -68,7 +68,7 @@ class FunctionBlockView {
 
  //   shapeElements.push(this.rootg);
 
-	var maxports = this.model.inputPorts.length;
+	var maxports = this.model.inputs.length;
 
     // create node header
     var header = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -138,7 +138,7 @@ class FunctionBlockView {
     root.appendChild(inputs);
     var i;
 
-    for (i = 1; i <= this.model.inputPorts.length; i++) {
+    for (i = 1; i <= this.model.inputs.length; i++) {
       this.drawInput(inputs, i);
     }
   }
@@ -149,16 +149,22 @@ class FunctionBlockView {
     root.appendChild(outputs);
     var i;
 
-    for (i = 1; i <= this.model.outputPorts.length; i++) {
+    for (i = 1; i <= this.model.outputs.length; i++) {
       this.drawOutput(outputs, i);
     }
   }
 
   drawInput(inp, index) {
-	var inputPort = this.model.inputPorts[index - 1];
+	var inputPort = this.model.inputs[index - 1];
+	inputPort.id = this.model.id + '-input-field-' + index;
     var input = document.createElementNS("http://www.w3.org/2000/svg", "g");
     input.setAttribute('class', 'input-field');
     input.setAttribute('transform', 'translate(0, ' + (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + ')');
+	input.id = inputPort.id;
+	inputPort.centerX = fbOutputWidth/2 + 2;//fbWidth - fbOutputWidth/2;
+	inputPort.centerY = 8;
+	inputPort.translateX = this.model.x + fbOutputWidth/2;
+	inputPort.translateY = (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + 8 + this.model.y;
     inp.appendChild(input);
     var innerinput = document.createElementNS("http://www.w3.org/2000/svg", "g");
     innerinput.setAttribute('class', 'port');
@@ -166,7 +172,7 @@ class FunctionBlockView {
     input.appendChild(innerinput);
 	
     var iport = document.createElementNS("http://www.w3.org/2000/svg", 'polygon');
-    iport.setAttribute('class', 'port-scrim_input');
+    iport.setAttribute('class', 'port-scrim-input');
     iport.setAttribute('points', fbInputWidth + ',0 ' + fbInputWidth + ',16 0,16 5,8 0,0');
     iport.setAttribute('data-clickable', 'false');
     iport.setAttribute('data-drag', 'port_5:port');
@@ -185,22 +191,27 @@ class FunctionBlockView {
   }
   
   drawOutput(outp, index) {
-	var outputPort = this.model.outputPorts[index - 1];
-    var input = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    input.setAttribute('class', 'output-field');
-    input.setAttribute('transform', 'translate(0, ' + (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + ')');
-    outp.appendChild(input);
-    var innerinput = document.createElementNS("http://www.w3.org/2000/svg", "g");
-    innerinput.setAttribute('class', 'port');
-    innerinput.setAttribute('data-clickable', 'false');
-    input.appendChild(innerinput);
+	var outputPort = this.model.outputs[index - 1];
+	outputPort.id = this.model.id + '-output-field-' + index;
+    var output = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    output.setAttribute('class', 'output-field');
+    output.setAttribute('transform', 'translate(0, ' + (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + ')');
+	output.id = outputPort.id;
+    outp.appendChild(output);
+    var inneroutput = document.createElementNS("http://www.w3.org/2000/svg", "g");
+    inneroutput.setAttribute('class', 'port');
+    inneroutput.setAttribute('data-clickable', 'false');
+    output.appendChild(inneroutput);
 
     var oport = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    oport.setAttribute('class', 'port-scrim');
-    oport.setAttribute('points', (fbWidth - fbOutputWidth)+',0 ' + (fbWidth - 5) + ',0 ' + fbWidth + ',8 ' + (fbWidth - 5) + ',16 '+(fbWidth - fbOutputWidth)+',16')
-    oport.setAttribute('data-clickable', 'false');
-    oport.setAttribute('data-drag', 'port_5:port');
-    innerinput.appendChild(oport);
+    oport.setAttribute('class', 'port-scrim-output');
+    oport.setAttribute('points', (fbWidth - fbOutputWidth)+',0 ' + (fbWidth - 5) + ',0 ' + fbWidth + ',8 ' + (fbWidth - 5) + ',16 '+(fbWidth - fbOutputWidth)+',16');
+	outputPort.centerX = fbWidth - fbOutputWidth/2;
+	outputPort.centerY = 8;
+	outputPort.translateX = this.model.x + fbWidth - fbOutputWidth/2;
+	outputPort.translateY = (headerHeight + headerTypeHeight + 12 + 30 * (index-1)) + 8 + this.model.y;
+	oport.id = outputPort.id + '-port-scrim';
+    inneroutput.appendChild(oport);
 
     var outputText = document.createElementNS("http://www.w3.org/2000/svg", "text");
     outputText.setAttribute('class', 'port-label');
@@ -210,13 +221,35 @@ class FunctionBlockView {
     outputText.setAttribute('x', fbWidth - fbOutputWidth - 10);
     outputText.setAttribute('y', '14');
     outputText.innerHTML = outputPort.name;
-    input.appendChild(outputText);
+    output.appendChild(outputText);
   }
 
   delete() {
 	  var parent = this.rootg.parentElement;
 	  parent.removeChild(this.rootg);
   }
+  
+  translate(newX, newY) {
+	  this.rootg.setAttribute('transform', 'translate(' + newX + ',' + newY + ")");
+	  
+  }
+}
+
+class PortConnectorView {
+	constructor(model, controller, parent) {
+		this.model = model;
+		this.controller = controller;
+		this.parent = parent;
+	}
+	
+	draw() {
+		console.log(port.center);
+		var connector = document.createElementNS("http://www.w3.org/2000/svg", "g");
+		var circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+		circle.setAttribute("r", 4);
+		circle.setAttribute("cx", port.centerX);
+		parent.appendChild(circle);
+	}
 }
 
 var inputWidth = 200;
